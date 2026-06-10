@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCC Family Feud 🤪</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+
+.combo {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40px;
+  font-weight: bold;
+  color: #f1c40f;
+  animation: comboPop 0.8s ease;
+}
+
+
+#surveyBoard {
+  margin-top: 15px;
+}
+
+
+#surveyBoard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+#surveyBoard {
+  padding: 15px;
+  border: 3px solid #f1c40f;
+  border-radius: 12px;
+  background: #111;
+  box-shadow: 0 0 20px rgba(255,215,0,0.5);
+}
+
+
+.ff-row.revealed {
+  background: linear-gradient(90deg, #ff9900, #ffcc00);
+  color: black;
+  transform: scale(1.03);
+}
+
+.ff-left {
+  display: flex;
+  gap: 12px;
+}
+
+
+.ff-right {
+  color: #f1c40f;
+  font-weight: bold;
+}
+
+
+.ff-hidden {
+  width: 100%;
+  text-align: center;
+  font-size: 26px;
+  letter-spacing: 2px;
+}
+
+.ff-row {
+  background: linear-gradient(90deg, #003f8c, #007bff);
+  border: 2px solid #f1c40f;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: bold;
+  font-size: 20px;
+  transition: all 0.3s ease;
+  perspective: 1000px;
+}
+
+
+.ff-row.revealed {
+  background: linear-gradient(90deg, #ffcc00, #ff9900);
+  color: black;
+  transform: scale(1.05);
+  box-shadow: 0 0 12px gold;
+  animation: flip 0.4s ease;
+
+}
+
+
+@keyframes flip {
+  0% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0); }
+}
+
+.actionBar {
+  margin-top: 10px;
+}
+
+.actionBar button {
+  margin: 5px;
+}
+
+.shake {
+  animation: shake 0.3s;
+}
+
+@keyframes shake {
+  0% { transform: translate(0); }
+  25% { transform: translate(5px); }
+  50% { transform: translate(-5px); }
+  75% { transform: translate(5px); }
+  100% { transform: translate(0); }
+}
+
+.flash {
+  animation: flash 0.5s infinite;
+}
+
+@keyframes flash {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+
+@keyframes comboPop {
+  0% { transform: scale(0.5) translate(-50%, -50%); opacity:0; }
+  50% { transform: scale(1.3) translate(-50%, -50%); opacity:1; }
+  100% { transform: scale(1) translate(-50%, -50%); opacity:0; }
+}
+.risk {
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 5px red; }
+  50% { box-shadow: 0 0 20px red; }
+  100% { box-shadow: 0 0 5px red; }
+}
+
+body {
+  margin:0;
+  font-family:sans-serif;
+  background: linear-gradient(-45deg, #1e1e2f, #243b55, #3a6073, #16222a);
+  background-size: 400% 400%;
+  animation: gradientMove 12s ease infinite;
+  color:white;
+  text-align:center;
+}
+
+@keyframes gradientMove {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
+}
+
+.confetti {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: red;
+  top: 0;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+.container {
+  max-width:800px;
+  margin:30px auto;
+  background:#2b2b3c;
+  padding:25px;
+  border-radius:16px;
+}
+.tile {
+  display:inline-block;
+  margin:6px;
+  padding:18px;
+  background:#444;
+  border-radius:10px;
+  cursor:pointer;
+  animation: popIn 0.3s ease;
+}
+
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.tile:hover {
+  transform: scale(1.08);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+.tile.done {opacity:0.3;pointer-events:none;}
+button {
+  background:#ff6b9d;
+  color:white;
+  border:none;
+  padding:10px 16px;
+  border-radius:8px;
+}
+
+#questionTitle {
+  text-shadow: 0 0 10px gold;
+}
+
+
+#hint {
+  color:#f1c40f;
+  font-style: italic;
+  margin-top:10px;
+}
+#timer {height:6px;background:#555;margin-top:10px;}
+#timerFill {height:6px;background:#27ae60;width:100%;transition: width 1s linear}
+
+
+#instructions {
+  transition: all 0.3s ease;
+}
+
+#instructions:hover {
+  transform: scale(1.02);
+}
+
+
+
+#exitBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #e74c3c;
+}
+
+
+#strikes {
+  font-size: 28px;
+}
+
+
+
+#score {
+  transition: transform 0.2s;
+}
+
+
+#surveyBoard div {
+  display: flex;
+  justify-content: space-between;
+}
+
+
+#particles span {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #fff, transparent);
+  border-radius: 50%;
+  animation: float 15s linear infinite;
+}
+
+@keyframes float {
+  from { transform: translateY(100vh); }
+  to { transform: translateY(-10vh); }
+}
+
+</style>
+</head>
+
+
+<body>
+<div id="particles"></div>
+
+<audio id="ding" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+<audio id="buzzSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+<div class="container" id="start">
+  <h1>🤪 NCC Family Feud</h1>
+  <h3 id="roomDisplay" style="color:#f1c40f;"></h3>
+  <input id="name" placeholder="Name">
+  <br><br>
+
+  <input id="room" placeholder="Room Code">
+  <br><br>
+
+  <button onclick="createRoom()">Host Game</button>
+  <button onclick="joinRoom()">Join Game</button>
+  
+</div>
+
+
+<div class="container" id="game" style="display:none;">
+  <h3 id="roomDisplayGame" style="color:#f1c40f;"></h3>
+<div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+  <h2 id="teamA">🔴 Team A: 0</h2>
+  <h2 id="teamB">🔵 Team B: 0</h2>
+</div>
+
+
+<div style="margin-bottom:10px;">
+  👥 Players: <span id="playerList">None</span>
+</div>
+
+
+  <h3 id="turn">Press Buzz to Start</h3>
+  <div style="
+  background:#1a1a2e;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+  text-align:left;
+  font-size:14px;
+  border: 2px solid #f1c40f;
+  box-shadow: 0 0 10px rgba(241,196,15,0.5);
+">
+
+<h3 style="color:#f1c40f; text-align:center;">🎮 HOW TO PLAY</h3>
+
+<p>
+🔴🔵 <b>Teams:</b> Two teams (A & B) compete.<br><br>
+
+🔔 <b>Step 1 – Buzz:</b><br>
+Click your team button to buzz first.<br>
+Only the first team to buzz can answer.<br><br>
+
+💬 <b>Step 2 – Answer:</b><br>
+Type an answer and press ✅ Submit.<br>
+If it matches one of the hidden answers, it will reveal on the board.<br><br>
+
+✅ <b>Correct Answer:</b><br>
+You earn points and keep control.<br><br>
+
+❌ <b>Wrong Answer:</b><br>
+You get a strike (❌).<br>
+3 strikes = control passes to the other team.<br><br>
+
+🎯 <b>Steal Round:</b><br>
+The other team gets ONE chance to guess correctly and steal ALL points.<br><br>
+
+🏆 <b>Winning a Round:</b><br>
+Reveal all answers OR win the steal to collect points.<br><br>
+
+⏱ <b>Timer:</b><br>
+You must answer before time runs out!<br><br>
+
+⏭ <b>Skip:</b><br>
+Skip a question if stuck (but lose points).<br>
+</p>
+
+</div>
+  
+<div style="margin-bottom:10px;font-size:14px;">
+  
+😂 Fun • 🧠 Logic • 🎲 Risk (double or lose)
+<br>
+🔥 Combo = more points • ⏭ You can skip tough questions
+
+</div>
+<div id="grid"></div>
+
+<div id="questionBox" style="display:none;">
+  <h2 id="questionTitle" style="color:#f1c40f;"></h2> 
+<div id="surveyBoard"></div>
+<h2 id="strikes">❌ ❌ ❌</h2>
+<h3 id="roundScore">Round: 0</h3>
+<h3 id="category"></h3>
+
+
+
+<div id="timer"><div id="timerFill"></div></div>
+<div id="timeText" style="margin-top:5px;font-size:14px;"></div>
+<input id="answer" autocomplete="off" autocorrect="off" spellcheck="false"><br><br>
+
+<div class="actionBar">
+    <button onclick="submitAnswer()">✅ Submit</button>
+    <button onclick="skipQuestion()">⏭ Skip</button>
+    <button onclick="revealAll()">👁 Reveal All</button>
+    
+  </div>
+  
+
+  <div>
+    <button onclick="buzz(0)">🔴 Team A Buzz</button>
+    <button onclick="buzz(1)">🔵 Team B Buzz</button>
+  </div>
+  
+
+
+<p id="hint"></p>
+<p id="result"></p>
+
+
+</div>
+</div>
+
+<div class="container" id="end" style="display:none;">
+<h2>Final Score: <span id="final"></span></h2>
+
+<h3>🏆 Leaderboard</h3>
+<ul id="leaderboard"></ul>
+
+<button onclick="location.reload()">Play Again</button>
+</div>
+
+
+<script>
+
+let playerKey = ""; 
+firebase.initializeApp({
+  databaseURL:"https://famf-de505-default-rtdb.firebaseio.com/"
+});
+function renderBoard(q){
+  let board = document.getElementById("surveyBoard");
+  board.innerHTML = "";
+
+  q.answers.forEach((a,i)=>{
+
+    let row = document.createElement("div");
+    row.className = "ff-row";
+
+    if(a.revealed){
+      row.innerHTML = `
+        <div class="ff-left">${i+1}. ${a.text}</div>
+        <div class="ff-right">${a.points}</div>
+      `;
+      row.classList.add("revealed");
+    } else {
+      row.innerHTML = `<div class="ff-hidden">${i+1}</div>`;
+    }
+
+    board.appendChild(row);
+  });
+}
+// ✅ NOW correctly outside
+function launchConfetti(){
+  for(let i=0;i<50;i++){
+    let c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=Math.random()*100+"vw";
+    c.style.background=`hsl(${Math.random()*360},100%,50%)`;
+    c.style.animationDuration=(2+Math.random()*3)+"s";
+    document.body.appendChild(c);
+
+    setTimeout(()=>c.remove(),4000);
+  }
+}
+
+function startFastMoney(){
+
+alert("⚡ FAST MONEY ROUND!");
+
+let bonus = Math.floor(Math.random() * 100) + 50;
+
+let winningTeam =
+  teams[0].score > teams[1].score ? 0 : 1;
+
+teams[winningTeam].score += bonus;
+
+updateScore();
+launchConfetti();
+
+setTimeout(() => finish(), 3000);
+}
+
+
+// ✅ 30 QUESTIONS
+
+const questions = [
+
+{
+  q: "Name something you use every day",
+  cat: "Fun",
+  answers: [
+    { text: "phone", points: 40, revealed: false },
+    { text: "computer", points: 30, revealed: false },
+    { text: "car", points: 20, revealed: false },
+    { text: "toothbrush", points: 10, revealed: false }
+  ]
+},
+
+{
+  q: "Name something people forget often",
+  cat: "Fun",
+  answers: [
+    { text: "keys", points: 40, revealed: false },
+    { text: "phone", points: 30, revealed: false },
+    { text: "password", points: 20, revealed: false },
+    { text: "wallet", points: 10, revealed: false }
+  ]
+},
+
+{
+  q: "Name something you do before bed",
+  cat: "Fun",
+  answers: [
+    { text: "brush teeth", points: 35, revealed: false },
+    { text: "phone", points: 30, revealed: false },
+    { text: "watch tv", points: 20, revealed: false },
+    { text: "sleep", points: 15, revealed: false }
+  ]
+},
+
+{
+  q: "Name a reason people are late",
+  cat: "Fun",
+  answers: [
+    { text: "traffic", points: 40, revealed: false },
+    { text: "oversleep", points: 30, revealed: false },
+    { text: "forgot", points: 20, revealed: false },
+    { text: "car trouble", points: 10, revealed: false }
+  ]
+},
+
+{
+  q: "Name something people do when bored",
+  cat: "Fun",
+  answers: [
+    { text: "phone", points: 40, revealed: false },
+    { text: "sleep", points: 30, revealed: false },
+    { text: "watch tv", points: 20, revealed: false },
+    { text: "eat", points: 10, revealed: false }
+  ]
+},
+
+{
+  q: "Name something that smells bad",
+  cat: "Fun",
+  answers: [
+    { text: "garbage", points: 40, revealed: false },
+    { text: "feet", points: 30, revealed: false },
+    { text: "food", points: 20, revealed: false },
+    { text: "bathroom", points: 10, revealed: false }
+  ]
+},
+
+{
+  q: "Name something people fight over",
+  cat: "Fun",
+  answers: [
+    { text: "money", points: 40, revealed: false },
+    { text: "food", points: 30, revealed: false },
+    { text: "remote", points: 20, revealed: false },
+    { text: "opinions", points: 10, revealed: false }
+  ]
+},
+
+{
+  q: "Name something that can break without being touched",
+  cat: "Logic",
+  answers: [
+    { text: "promise", points: 40, revealed: false },
+    { text: "silence", points: 30, revealed: false },
+    { text: "heart", points: 20, revealed: false },
+    { text: "trust", points: 10, revealed: false }
+  ]
+},
+
+{
+  q: "Name something that improves the more you use it",
+  cat: "Logic",
+  answers: [
+    { text: "brain", points: 40, revealed: false },
+    { text: "skills", points: 30, revealed: false },
+    { text: "memory", points: 20, revealed: false },
+    { text: "body", points: 10, revealed: false }
+  ]
+},
+
+{
+  q: "Name something expensive people regret buying",
+  cat: "Fun",
+  risk: true,
+  answers: [
+    { text: "car", points: 50, revealed: false },
+    { text: "phone", points: 40, revealed: false },
+    { text: "clothes", points: 30, revealed: false },
+    { text: "house", points: 20, revealed: false }
+  ]
+},
+
+{
+  q: "Name something people lie about",
+  cat: "Fun",
+  risk: true,
+  answers: [
+    { text: "age", points: 40, revealed: false },
+    { text: "salary", points: 35, revealed: false },
+    { text: "weight", points: 15, revealed: false },
+    { text: "height", points: 10, revealed: false }
+  ]
+}
+
+];
+
+let roundId = 0;
+let roomId = "";
+let playerName = "";
+let playerTeam = null;
+let isHost = false;
+let lastAnswerProcessed = "";
+let strikes = 0;
+let roundPoints = 0;
+let stealMode = false;
+let buzzerLocked = false;
+let activePlayerName = "";
+
+let streak = 0;
+
+let teams = [
+  { name: "Team A", score: 0 },
+  { name: "Team B", score: 0 }
+];
+
+let currentTeam = null;
+let activeTeam = null;
+current=0,name="",answered=0;
+
+let timer=null, hintTimer=null;
+let timeLeft = 100;
+
+
+function revealAll(){
+
+let q = questions[current];
+
+// ✅ reveal everything
+q.answers.forEach(a => a.revealed = true);
+
+// ✅ update UI
+renderBoard(q);
+
+// ✅ show answers in text too
+let allAnswers = q.answers.map(a => a.text).join(", ");
+document.getElementById("result").innerText =
+  "📢 Answers: " + allAnswers;
+
+}
+
+
+
+function skipQuestion(){
+  clearInterval(timer);
+  clearTimeout(hintTimer);
+
+  streak = 0;
+
+  let ans = questions[current].answers.map(a => a.text).join(", ");
+  result.innerText = `⏭ Skipped! Answers: ${ans}`;
+
+  document.querySelectorAll(".tile")[current].classList.add("done");
+
+  answered++;
+  if(answered >= questions.length) finish();
+
+  if(currentTeam !== null){
+    teams[currentTeam].score = Math.max(0, teams[currentTeam].score - 5);
+    updateScore();
+  }
+
+  currentTeam = null;
+  activeTeam = null;
+  buzzerLocked = false;
+
+  questionBox.style.display = "none";
+  document.getElementById("answer").value = "";
+
+  syncState();
+}
+
+
+
+function shuffle(arr){
+  for (let i = arr.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+
+function normalize(str){
+  return str.toLowerCase().trim();
+}
+
+function createRoom(){
+
+playerName = document.getElementById("name").value.trim() || "Host";
+
+isHost = true;
+roomId = Math.random().toString(36).substring(2,6).toUpperCase();
+
+
+document.getElementById("roomDisplayGame").innerText =
+  "ROOM CODE: " + roomId;
+
+// ✅ UNIQUE KEY
+playerKey = playerName + "_" + Math.floor(Math.random()*1000);
+
+// ✅ SAVE HOST
+firebase.database()
+  .ref("rooms/" + roomId + "/players/" + playerKey)
+
+  .set({
+  name: playerName
+});
+
+
+
+// ✅ REMOVE ON EXIT
+window.onbeforeunload = () => {
+  firebase.database()
+    .ref("rooms/" + roomId + "/players/" + playerKey)
+    .remove();
+};
+
+startGame();
+initFirebaseListeners();
+}
+
+
+function joinRoom(){
+
+playerName = document.getElementById("name").value.trim();
+roomId = document.getElementById("room").value.trim().toUpperCase();
+
+if(!playerName || !roomId){
+  alert("Enter name + room");
+  return;
+}
+
+// ✅ Hide start screen
+document.getElementById("start").style.display = "none";
+
+// ✅ Unique key for player
+playerKey = playerName + "_" + Math.floor(Math.random()*1000);
+
+// ✅ Save player
+firebase.database()
+  .ref("rooms/" + roomId + "/players/" + playerKey)
+  .set({
+    name: playerName
+  });
+
+// ✅ Remove player on exit
+window.onbeforeunload = () => {
+  firebase.database()
+    .ref("rooms/" + roomId + "/players/" + playerKey)
+    .remove();
+};
+
+// ✅ Build player UI
+let container = document.createElement("div");
+container.className = "container";
+
+container.innerHTML = `
+  <h2>Room: ${roomId}</h2>
+  
+<h2 id="playerQuestion" style="color:#f1c40f;"></h2>
+<div id="playerBoard"></div>
+<h3 id="playerStrikes"></h3>
+<br>
+
+
+  <div style="margin-bottom:10px;">
+    👥 Players: <span id="playerList">Loading...</span>
+  </div>
+
+  <h3 id="yourTeam"></h3>
+  <h3 id="turnStatus"></h3>
+  <h3 id="playerRound">Round: 0</h3>
+
+
+  <!-- ✅ SINGLE SMART BUZZ BUTTON -->
+  <div style="margin-top:15px;">
+    <button id="buzzBtn" onclick="sendBuzz()"
+      style="padding:20px; font-size:18px; width:80%;">
+      🔔 Buzz
+    </button>
+  </div>
+
+  <br>
+
+  <input id="remoteAnswer" placeholder="Answer"
+    style="width:70%; padding:10px;">
+
+  <button onclick="sendAnswer()">Submit</button>
+`;
+
+// ✅ Add to page
+document.body.appendChild(container);
+
+// ✅ Init listeners after DOM is ready
+setTimeout(() => {
+  initFirebaseListeners();
+}, 200);
+
+}
+
+function initFirebaseListeners(){
+
+let ref = firebase.database().ref("rooms/" + roomId);
+ref.off();
+
+// =========================
+// 👥 PLAYER LIST LISTENER
+// =========================
+ref.child("players").on("value", snap => {
+
+  let data = snap.val();
+  let lists = document.querySelectorAll("#playerList");
+
+  if(!lists.length) return;
+
+  let teamA = [];
+  let teamB = [];
+  let unassigned = [];
+
+  if(data){
+    Object.entries(data).forEach(([key, p]) => {
+      if(!p?.name) return;
+
+      if(p.team === 0){
+        teamA.push("👤 " + p.name);
+      }
+      else if(p.team === 1){
+        teamB.push("👤 " + p.name);
+      }
+      else{
+        if(isHost){
+          unassigned.push(`
+            ${p.name}
+            <button onclick="assignTeam('${key}',0)">🔴 A</button>
+            <button onclick="assignTeam('${key}',1)">🔵 B</button>
+          `);
+        } else {
+          unassigned.push("👤 " + p.name);
+        }
+      }
+    });
+  }
+
+  lists.forEach(el => {
+    if(!data){
+      el.innerText = "None";
+      return;
+    }
+
+    el.innerHTML =
+      "<b>🟡 Unassigned:</b><br>"
+      + (unassigned.join("<br>") || "None")
+      + "<br><br><b>🔴 Team A:</b><br>"
+      + (teamA.join("<br>") || "None")
+      + "<br><br><b>🔵 Team B:</b><br>"
+      + (teamB.join("<br>") || "None");
+  });
+
+  // ✅ detect YOUR team
+  let myEntry = data ? data[playerKey] : null;
+
+  if(myEntry && myEntry.team !== undefined){
+    playerTeam = myEntry.team;
+
+    let myTeamEl = document.getElementById("yourTeam");
+    if(myTeamEl){
+      myTeamEl.innerText =
+        "You are: " + (playerTeam === 0 ? "🔴 Team A" : "🔵 Team B");
+    }
+  }
+
+});
+
+
+// =========================
+// 🔔 BUZZ LISTENER
+// =========================
+ref.child("buzz").on("value", snap => {
+
+let data = snap.val();
+if(!data) return;
+
+// ✅ Ignore other rounds
+if(!data.roundId || Number(data.roundId) !== Number(roundId)) return;
+
+// ✅ HARD STOP if already taken
+if(currentTeam !== null) return;
+
+if(isHost){
+  currentTeam = data.team;
+  activePlayerName = data.name;
+  buzzerLocked = true;
+
+  syncState(); // 🔥 this locks EVERYONE
+
+  let hostEl = document.getElementById("turn");
+  if(hostEl){
+    hostEl.innerText = `⚡ ${data.name} buzzed first!`;
+    hostEl.style.color = "#f1c40f";
+  }
+}
+
+});
+
+
+
+// =========================
+// 💬 ANSWER LISTENER (CRITICAL)
+// =========================
+ref.child("answer").on("value", snap => {
+
+let data = snap.val();
+if(!data) return;
+
+if(isHost){
+
+  if(data.value === lastAnswerProcessed) return;
+
+  lastAnswerProcessed = data.value;
+
+  // ✅ Update active player to whoever answered
+  activePlayerName = data.name;
+
+// ✅ FORCE state sync BEFORE processing
+syncState();
+
+let input = document.getElementById("answer");
+if(input){
+  input.value = data.value;
+}
+
+setTimeout(() => {
+  submitAnswer();
+}, 50);
+}
+
+});
+
+
+// =========================
+// 🎮 GAME STATE LISTENER
+// =========================
+
+ref.child("state").on("value", snap => {
+
+let s = snap.val();
+if(!s) return;
+
+stealMode = s.stealMode || false;
+
+teams = s.teams;
+current = s.current;
+
+if(!isHost){
+  currentTeam = s.currentTeam;
+}
+
+
+
+if(s.roundId !== roundId){
+  if(!isHost){
+    buzzerLocked = false;
+    currentTeam = null;
+  }
+}
+
+  
+
+
+roundId = s.roundId || 0;
+activePlayerName = s.activePlayerName || "";
+
+updateScore();
+
+  // ✅ PLAYER TURN TEXT
+  let playerEl = document.getElementById("turnStatus");
+  if(playerEl){
+    if(currentTeam === null){
+      playerEl.innerText = "⏳ Waiting for buzz...";
+    }
+    else{
+      
+playerEl.innerText =
+  (currentTeam === 0 ? "🔴 Team A" : "🔵 Team B")
+  + " • " + activePlayerName + " answering";
+
+    }
+  }
+
+  // ✅ HOST TURN TEXT
+  let hostEl = document.getElementById("turn");
+  if(hostEl){
+    if(currentTeam === null){
+      hostEl.innerText = "⏳ Waiting for buzz...";
+      hostEl.style.color = "#ccc";
+    }
+    else{
+      hostEl.innerText =
+        
+(currentTeam === 0 ? "🔴 Team A" : "🔵 Team B")
++ " • " + activePlayerName + " answering";
+
+    }
+  }
+
+  // ✅ SMART BUZZ BUTTON CONTROL
+  let buzzBtn = document.getElementById("buzzBtn");
+
+if(buzzBtn){
+
+  // ❌ No team yet
+  if(playerTeam === null){
+    buzzBtn.disabled = true;
+    buzzBtn.innerText = "⏳ Waiting for team...";
+    buzzBtn.style.opacity = "0.5";
+  }
+
+  // ✅ Waiting for buzz (open state)
+  else if(s.question && currentTeam === null){
+    buzzBtn.disabled = false;
+    buzzBtn.innerText =
+      (playerTeam === 0 ? "🔴 " : "🔵 ") + "Buzz!";
+    buzzBtn.style.opacity = "1";
+  }
+
+  // ✅ Someone already buzzed
+  else{
+    buzzBtn.disabled = true;
+    buzzBtn.innerText = "⛔ Buzz locked";
+    buzzBtn.style.opacity = "0.5";
+  }
+}
+
+  // ✅ ENABLE/DISABLE ANSWER INPUT
+  let input = document.getElementById("remoteAnswer");
+
+  if(input && playerTeam !== null){
+
+    if(currentTeam === null){
+  // ✅ No one has buzzed yet
+  input.disabled = true;
+  input.style.opacity = "0.4";
+  input.placeholder = "⏳ Waiting for buzz...";
+  input.style.background = "#333";
+  input.style.color = "#fff";
+}
+
+else if(currentTeam !== playerTeam){
+  // ❌ Other team's turn
+  input.disabled = true;
+  input.style.opacity = "0.4";
+  input.placeholder = "⛔ Not your turn";
+  input.style.background = "#333";
+  input.style.color = "#fff";
+  input.value = "";
+}
+
+else{
+  // ✅ Your team's turn
+  input.disabled = false;
+  input.style.opacity = "1";
+  input.placeholder = "Type your answer...";
+  input.style.background = "#fff";
+  input.style.color = "#000";
+}
+  }
+
+  let roundEl = document.getElementById("playerRound");
+if(roundEl){
+  roundEl.innerText = "Round: " + (s.roundPoints || 0);
+}  
+// =========================
+// 👀 PLAYER BOARD + QUESTION
+// =========================
+// ✅ HIDE when no active question
+if(!s.question){
+
+let title = document.getElementById("playerQuestion");
+let board = document.getElementById("playerBoard");
+let strikes = document.getElementById("playerStrikes");
+
+if(title) title.innerText = "⏳ Waiting for next question...";
+if(board) board.innerHTML = "";
+if(strikes) strikes.innerText = "";
+
+return; // ✅ STOP further rendering
+}
+if(s.question){
+
+let q = s.question;
+
+// ✅ QUESTION
+let title = document.getElementById("playerQuestion");
+if(title){
+  title.innerText = q.q;
+}
+
+// ✅ BOARD
+let board = document.getElementById("playerBoard");
+
+if(board){
+  board.innerHTML = "";
+
+  q.answers.forEach((a,i)=>{
+
+    let row = document.createElement("div");
+row.className = "ff-row";
+
+
+if(a.revealed){
+
+row.innerHTML = `
+  <div class="ff-left">${i+1}. ${a.text}</div>
+  <div class="ff-right">${a.points}</div>
+`;
+
+row.classList.add("revealed");
+
+setTimeout(() => {
+  row.style.transform = "scale(1.05)";
+  setTimeout(()=>row.style.transform="scale(1)",200);
+}, 50);
+
+} else {
+row.innerHTML = `<div class="ff-hidden">${i+1}</div>`;
+}
+
+
+
+    board.appendChild(row);
+  });
+}
+
+// ✅ STRIKES
+let strikeEl = document.getElementById("playerStrikes");
+if(strikeEl){
+  strikeEl.innerText =
+    "❌ ".repeat(s.strikes) + "◻️ ".repeat(3 - s.strikes);
+}
+}
+});
+
+}
+
+
+function assignTeam(playerKey, team){
+  firebase.database()
+    .ref("rooms/" + roomId + "/players/" + playerKey + "/team")
+    .set(team);
+}
+
+function sendBuzz(){
+  if(playerTeam === null) return;
+
+  let ref = firebase.database().ref("rooms/" + roomId + "/buzz");
+
+  ref.transaction(current => {
+
+    // ✅ Already taken
+    if(current && current.roundId === roundId){
+      return; // cancel write
+    }
+
+    // ✅ Accept first buzz ONLY
+    return {
+      name: playerName,
+      team: playerTeam,
+      time: firebase.database.ServerValue.TIMESTAMP,
+      roundId: roundId
+    };
+  });
+}
+
+let lastSent = 0;
+function sendAnswer(){
+
+  let now = Date.now();
+  if(now - lastSent < 1500) return; // 1.5 sec cooldown
+
+  let val = document.getElementById("remoteAnswer").value.trim();
+  if(!val) return;
+
+  lastSent = now;
+
+
+
+let stateRef = firebase.database().ref("rooms/" + roomId + "/state");
+
+stateRef.once("value", snap => {
+
+  let s = snap.val();
+  if(!s) return;
+
+  // ✅ HARD validation
+  if(s.currentTeam !== playerTeam) return;
+
+  firebase.database()
+    .ref("rooms/" + roomId + "/answer")
+    .set({
+      name: playerName,
+      team: playerTeam,
+      value: val
+    });
+
+  document.getElementById("remoteAnswer").value = "";
+});
+
+
+
+}
+
+function isMatch(input, answer){
+
+let i = normalize(input);
+let a = normalize(answer);
+
+if(i === a) return true;
+if(i.includes(a) || a.includes(i)) return true;
+
+let wordsA = a.split(" ");
+let wordsI = i.split(" ");
+
+let overlap = wordsA.filter(w => wordsI.includes(w));
+
+return overlap.length >= Math.ceil(wordsA.length / 2);
+}
+
+
+// START
+function startGame(){
+
+questions.splice(0, questions.length, ...shuffle([...questions]));
+answered = 0;
+name = document.getElementById("name").value.trim().toLowerCase();
+name = name.charAt(0).toUpperCase() + name.slice(1);
+
+if(!name) name = "Host";
+
+  start.style.display="none";
+  game.style.display="block";
+  document.getElementById("grid").innerHTML = "";
+  questions.forEach((q,i)=>{
+    let t=document.createElement("div");
+    t.className="tile";
+    if(q.risk){
+  t.innerText = "🎲";
+}
+else if(q.cat === "Logic"){
+  t.innerText = "🧠";
+}
+else if(q.cat === "Fun"){
+  t.innerText = "😂";
+}
+else{
+  t.innerText = "❓";
+}
+    
+
+if(q.risk){
+  t.style.background = "#e74c3c"; // red
+}
+else if(q.cat === "Logic"){
+  t.style.background = "#3498db"; // blue
+}
+else if(q.cat === "Fun"){
+  t.style.background = "#9b59b6"; // purple
+}
+else{
+  t.style.background = "#444";
+}
+
+
+    t.onclick=()=>openQ(i,t);
+    document.getElementById("grid").appendChild(t);
+  });
+  document.getElementById("exitBtn").style.display = "block";
+}
+
+
+
+function updateScore(){
+  document.getElementById("teamA").innerText =
+    `🔴 Team A: ${teams[0].score}`;
+
+  document.getElementById("teamB").innerText =
+    `🔵 Team B: ${teams[1].score}`;
+}
+
+
+
+function showCombo(n){
+  let el=document.createElement("div");
+  el.className="combo";
+  el.innerText=`🔥 COMBO x${n}`;
+  el.style.color = `hsl(${Math.random()*360},100%,60%)`;
+  document.body.appendChild(el);
+  el.style.fontSize = (30 + n * 5) + "px";
+  setTimeout(()=>el.remove(),800);
+}
+
+
+function openQ(i,t){
+
+if(questionBox.style.display === "block") return;
+if(document.querySelectorAll(".tile")[i].classList.contains("done")) return;
+
+current = i;
+
+roundId = Date.now();
+strikes = 0;
+roundPoints = 0;
+stealMode = false;
+buzzerLocked = false;
+activeTeam = null;
+currentTeam = null;
+
+// ✅ 1. RESET FIREBASE STATE FIRST
+firebase.database().ref("rooms/" + roomId + "/state").set({
+  teams: teams,
+  current: i,
+  strikes: 0,
+  roundPoints: 0,
+  currentTeam: null,
+  activeTeam: null,
+  activePlayerName: "",
+  stealMode: false,
+  roundId: roundId,
+  question: questions[i]
+});
+
+// ✅ 2. NOW clear buzz
+firebase.database().ref("rooms/" + roomId + "/buzz").remove();
+firebase.database().ref("rooms/" + roomId + "/answer").set(null);
+
+// ✅ 3. UI
+document.getElementById("questionTitle").innerText = questions[i].q;
+questionBox.style.display = "block";
+
+renderBoard(questions[i]);
+startTimer();
+autoHint();
+
+document.getElementById("answer").onkeypress = function(e){
+  if(e.key === "Enter"){
+    submitAnswer();
+  }
+};
+
+let btn = document.getElementById("buzzBtn");
+if(btn){
+  btn.innerText = "🔔 Buzz";
+  btn.disabled = false;
+}
+}
+
+
+
+
+// TIMER
+
+
+
+
+
+function startTimer(){
+  timeLeft = 100;
+  clearInterval(timer);
+
+  timerFill.style.width = "100%";
+  timerFill.style.background = "#2ecc71";
+  timerFill.classList.remove("flash");
+
+  timeText.innerText = `⏱ ${timeLeft}s`;
+
+  
+timer = setInterval(()=>{
+  timeLeft--;
+
+  timeText.innerText = `⏱ ${timeLeft}s`;
+
+  // ✅ REMOVE FLASH BEFORE REAPPLY
+  timerFill.classList.remove("flash");
+
+  // ✅ TEXT COLOR
+  if(timeLeft > 20){
+    timeText.style.color = "#2ecc71";
+  }else if(timeLeft > 5){
+    timeText.style.color = "#f1c40f";
+  }else{
+    timeText.style.color = "#e74c3c";
+  }
+
+  let percent = (timeLeft / 100) * 100;
+  timerFill.style.width = percent + "%";
+
+  // ✅ BAR COLOR
+  if(timeLeft > 20){
+    timerFill.style.background = "#2ecc71";
+  }
+  else if(timeLeft > 5){
+    timerFill.style.background = "#f1c40f";
+  }
+  else if(timeLeft > 0){
+    timerFill.style.background = "#e74c3c";
+    timerFill.classList.add("flash");
+
+    if(questionBox.style.display === "block"){
+      result.innerText = "⚠️ LAST CHANCE!";
+    }
+  }
+
+  
+if(timeLeft <= 0){
+  clearInterval(timer);
+
+  addStrike("⏰ Time's Up!"); // ✅ THIS is the key change
+}
+
+
+},1000);
+
+}
+
+// HINT
+function autoHint(){
+  clearTimeout(hintTimer);
+  hintTimer=setTimeout(()=>{
+    hint.innerText="💡 "+questions[current].h;
+  },5000);
+}
+
+
+
+function syncState(){
+  if(!isHost) return;
+
+
+  firebase.database().ref("rooms/" + roomId + "/state").set({
+  teams,
+  current,
+  strikes,
+  roundPoints,
+  currentTeam,
+  activeTeam,
+  activePlayerName,
+  stealMode,
+  roundId,
+  question: (questionBox.style.display === "block" ? questions[current] : null)
+});
+
+}
+
+
+// SUBMIT
+
+function submitAnswer(){
+
+  
+if(!isHost && currentTeam !== playerTeam){
+  return;
+}
+
+if(questionBox.style.display === "none") return;
+
+let val = normalize(document.getElementById("answer").value);
+if(!val) return;
+
+document.getElementById("answer").value = "";
+clearTimeout(hintTimer);
+
+
+if(currentTeam === null){
+  return; // silent ignore
+}
+
+
+let q = questions[current];
+let found = false;
+
+for(let a of q.answers){
+  if(!a.revealed && isMatch(val, a.text)){
+    a.revealed = true;
+    roundPoints += a.points;
+
+    document.getElementById("roundScore").innerText =
+      "Round: " + roundPoints;
+
+    found = true;
+    break;
+  }
+}
+
+if(found){
+  document.getElementById("ding")?.play();
+// ✅ FIRST assign active team if needed
+if(activeTeam === null){
+  activeTeam = currentTeam;
+}
+
+renderBoard(q);
+launchConfetti();
+
+// ✅ KEEP control with the team
+currentTeam = activeTeam;
+
+let allFound = q.answers.every(a => a.revealed);
+
+  if(allFound){
+    launchConfetti();
+    teams[currentTeam].score += roundPoints;
+    updateScore();
+    syncState();
+    
+revealAll();
+
+setTimeout(() => {
+  nextRound();
+}, 3000);
+    return;
+  }
+
+
+  if(stealMode){
+  launchConfetti();
+
+  revealAll(); // ✅ ADD THIS
+
+  setTimeout(() => {
+    teams[currentTeam].score += roundPoints;
+    updateScore();
+    syncState();
+    nextRound();
+  }, 3000);
+
+  return;
+}
+
+  document.getElementById("result").innerText = "✅ Correct!";
+  syncState();
+
+} else {
+
+  if(stealMode){
+  let other = activeTeam === 0 ? 1 : 0;
+
+  // ✅ reveal answers before scoring
+  revealAll();
+
+  setTimeout(() => {
+    teams[other].score += roundPoints;
+    updateScore();
+    syncState();
+    nextRound();
+  }, 3000);
+
+  return;
+}
+
+  addStrike();
+}
+
+// ✅ keep game flowing
+document.getElementById("answer").focus();
+}
+
+function finish(){
+
+if(!confirm("Are you sure you want to end the game?")){
+  return;
+}
+
+document.getElementById("exitBtn").style.display = "none";
+game.style.display="none";
+end.style.display="block";
+
+let finalScore = teams[0].score + teams[1].score;
+final.innerText = finalScore;
+
+launchConfetti();
+
+firebase.database().ref("leaderboard").push({
+  name,
+  score: finalScore
+});
+
+let ref = firebase.database().ref("leaderboard");
+
+ref.off();
+
+ref.on("value", snap => {
+
+  let bestScores = {};
+
+  snap.forEach(s => {
+    let data = s.val();
+
+    if (!bestScores[data.name] || data.score > bestScores[data.name]) {
+      bestScores[data.name] = data.score;
+    }
+  });
+
+  let arr = Object.entries(bestScores).map(([name, score]) => ({ name, score }));
+
+  arr.sort((a, b) => b.score - a.score);
+  arr = arr.slice(0, 10);
+
+  let list = document.getElementById("leaderboard");
+  list.innerHTML = "";
+
+  let medals = ["🥇","🥈","🥉"];
+
+  arr.forEach((s, i) => {
+    let li = document.createElement("li");
+    let prefix = medals[i] || (i+1)+".";
+
+    li.innerText = `${prefix} ${s.name} — ${s.score}`;
+
+    if(s.name === name){
+      li.style.color = "#f1c40f";
+      li.style.fontWeight = "bold";
+    }
+
+    if(i === 0){
+      li.style.textShadow = "0 0 10px gold";
+    }
+
+    list.appendChild(li);
+  });
+
+});
+}
+
+function buzz(team){
+  if(!isHost) return;
+  if(buzzerLocked) return;
+
+  currentTeam = team;
+  buzzerLocked = true;
+  document.getElementById("teamA").style.opacity = team === 0 ? "1" : "0.5";
+document.getElementById("teamB").style.opacity = team === 1 ? "1" : "0.5";
+
+  document.getElementById("turn").innerText =
+    teams[team].name + " buzzed! Answer now!";
+    document.getElementById("turn").style.color = "#f1c40f";
+}
+
+
+
+
+function addStrike(message){
+
+document.getElementById("buzzSound")?.play();  
+document.getElementById("result").innerText = message || "❌ Strike!";
+
+
+  strikes++;
+
+  
+
+  document.getElementById("strikes").innerText =
+  "❌ ".repeat(strikes) + "◻️ ".repeat(3 - strikes);
+
+
+
+  document.body.classList.add("shake");
+  setTimeout(()=>document.body.classList.remove("shake"),300);
+
+  if(strikes >= 3){
+
+    startSteal();
+  }
+  
+syncState();
+
+}
+
+
+function startSteal(){
+  stealMode = true;
+
+  activeTeam = activeTeam === 0 ? 1 : 0;
+  currentTeam = activeTeam;
+
+  document.getElementById("turn").innerText =
+    teams[activeTeam].name + " can STEAL!";
+
+  syncState(); // ✅ ADD THIS LINE
+}
+
+
+
+
+function nextRound(){
+
+strikes = 0;
+roundPoints = 0;
+stealMode = false;
+buzzerLocked = false;
+activeTeam = null;
+currentTeam = null;
+lastAnswerProcessed = "";
+document.getElementById("turn").innerText = "Next Question - Buzz!";
+document.getElementById("roundScore").innerText = "Round: 0";
+document.getElementById("strikes").innerText = "";
+
+document.querySelectorAll(".tile")[current].classList.add("done");
+
+
+let q = questions[current];
+
+document.getElementById("surveyBoard").innerHTML = "";
+document.getElementById("questionBox").style.display = "none";
+
+answered++;
+
+// ✅ RESET FIREBASE STATES
+
+if(isHost){
+  firebase.database().ref("rooms/" + roomId + "/buzz").remove();
+  firebase.database().ref("rooms/" + roomId + "/answer").remove();
+}
+
+
+if(answered >= questions.length){
+  startFastMoney();
+}
+
+else {
+  syncState();
+}
+}
+
+</script>
+<button id="exitBtn" onclick="finish()">🛑 End</button>
+</body>
+</html>
