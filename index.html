@@ -321,40 +321,54 @@ button {
 <h3 style="color:#f1c40f; text-align:center;">🎮 HOW TO PLAY</h3>
 
 <p>
+
 🔴🔵 <b>Teams:</b> Two teams (A & B) compete.<br><br>
 
 🔔 <b>Step 1 – Buzz:</b><br>
 Click your team button to buzz in.<br>
-The first team to buzz gets control of the question.<br><br>
+The first team to buzz answers first.<br><br>
 
-💬 <b>Step 2 – Answer:</b><br>
-Type an answer and press ✅ Submit.<br>
-If it matches a hidden answer, it will reveal on the board and earn points.<br><br>
+⚡ <b>Step 2 – First Attempt (Control Stage):</b><br>
+The buzzing team gives the first answer.<br>
+<br>
+• ✅ If correct → that team gains control of the round<br>
+• ❌ If wrong → the OTHER team gets ONE chance<br>
+<br>
+• ✅ If second team is correct → they gain control<br>
+• ❌ If both teams are wrong → the round continues with strikes<br><br>
+
+💬 <b>Step 3 – Main Round (Strike System):</b><br>
+Once a team gains control (or both teams miss), the round continues using strikes:<br><br>
 
 ✅ <b>Correct Answer:</b><br>
-Your team keeps control and continues guessing.<br><br>
+• Answer is revealed<br>
+• Points are added<br>
+• Your team keeps control<br><br>
 
 ❌ <b>Wrong Answer:</b><br>
-Your team gets a strike (❌), but you keep control.<br><br>
+• Your team gets a strike (❌)<br>
+• You keep playing until 3 strikes<br><br>
 
 ⏱ <b>Timer:</b><br>
-If time runs out, it counts as a strike (❌).<br>
-Your team keeps playing unless you reach 3 strikes.<br><br>
+• During first attempt → time runs out = other team gets a chance<br>
+• During main round → time runs out = strike (❌)<br><br>
 
 🚨 <b>3 Strikes Rule:</b><br>
 After 3 total strikes, the other team gets ONE chance to steal.<br><br>
 
 🎯 <b>Steal Round:</b><br>
 The other team gets ONE guess:<br>
-• ✅ If correct → they steal ALL points from the round<br>
-• ❌ If wrong → original team keeps the points<br><br>
+• ✅ Correct → they steal ALL round points<br>
+• ❌ Wrong → original team keeps the points<br><br>
 
-🏆 <b>Winning a Round:</b><br>
-Reveal all answers OR win the steal to collect points.<br><br>
+🏆 <b>Winning the Round:</b><br>
+• Reveal all answers OR win the steal to collect points<br><br>
 
 ⏭ <b>Skip:</b><br>
-Skip a question if stuck (you lose some points).<br>
+Skip a question if stuck (you lose some points)<br>
+
 </p>
+
 
 </div>
   
@@ -601,6 +615,7 @@ const questions = [
 
 ];
 
+let decidingControl = true;
 let roundId = 0;
 let roomId = "";
 let playerName = "";
@@ -1320,6 +1335,7 @@ stealMode = false;
 buzzerLocked = false;
 activeTeam = null;
 currentTeam = null;
+decidingControl = true;
 
 // ✅ 1. RESET FIREBASE STATE FIRST
 firebase.database().ref("rooms/" + roomId + "/state").set({
@@ -1417,10 +1433,42 @@ timer = setInterval(()=>{
   }
 
   
-if(timeLeft <= 0){
+  if(timeLeft <= 0){
   clearInterval(timer);
 
-  addStrike("⏰ Time's Up!"); // ✅ THIS is the key change
+  // ✅ If still deciding control → switch teams
+  if(decidingControl){
+
+// ✅ First timeout → give other team a chance
+if(activeTeam === null){
+
+  activeTeam = currentTeam;
+
+  currentTeam = currentTeam === 0 ? 1 : 0;
+
+  activePlayerName = "Team " + (currentTeam === 0 ? "A" : "B");
+
+  document.getElementById("result").innerText =
+    "⏰ Time's Up! Other team gets ONE chance!";
+
+  syncState();
+}
+
+// ✅ Second timeout → end deciding phase
+else{
+  decidingControl = false;
+
+  document.getElementById("result").innerText =
+    "⏰ No team answered! Moving to normal play.";
+
+  addStrike();
+}
+}
+
+  else{
+    // ✅ normal strike after control decided
+    addStrike("⏰ Time's Up!");
+  }
 }
 
 
@@ -1499,10 +1547,11 @@ for(let a of q.answers){
 
 if(found){
   document.getElementById("ding")?.play();
-// ✅ FIRST assign active team if needed
-if(activeTeam === null){
-  activeTeam = currentTeam;
-}
+  if(decidingControl){
+    decidingControl = false;
+    activeTeam = currentTeam;
+  }
+
 
 renderBoard(q);
 launchConfetti();
@@ -1547,10 +1596,40 @@ setTimeout(() => {
 
 } else {
 
-  if(stealMode){
+// ✅ FIRST ATTEMPT PHASE (HYBRID MODE)
+if(decidingControl){
+
+// ✅ If no team has failed yet → allow switch
+if(activeTeam === null){
+
+  activeTeam = currentTeam; // remember original team
+
+  currentTeam = currentTeam === 0 ? 1 : 0;
+  activePlayerName = "Team " + (currentTeam === 0 ? "A" : "B");
+
+  document.getElementById("result").innerText =
+    "❌ Wrong! Other team gets ONE chance!";
+
+  syncState();
+  return;
+}
+
+// ✅ If BOTH teams already tried → end deciding phase
+else{
+  decidingControl = false;
+
+  document.getElementById("result").innerText =
+    "❌ Both teams missed! Moving to normal play.";
+
+  addStrike(); // start strikes system
+  return;
+}
+}
+
+// ✅ Steal logic (unchanged)
+if(stealMode){
   let other = activeTeam === 0 ? 1 : 0;
 
-  // ✅ reveal answers before scoring
   revealAll();
 
   setTimeout(() => {
@@ -1563,9 +1642,9 @@ setTimeout(() => {
   return;
 }
 
-  addStrike();
+// ✅ Normal strikes AFTER control is decided
+addStrike();
 }
-
 // ✅ keep game flowing
 document.getElementById("answer").focus();
 }
