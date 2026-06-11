@@ -520,7 +520,7 @@ teams[winningTeam].score += bonus;
 updateScore();
 launchConfetti();
 
-setTimeout(() => finish(), 3000);
+setTimeout(() => finish(), 10000);
 }
 
 
@@ -1672,7 +1672,7 @@ revealAll();
 
 setTimeout(() => {
   nextRound();
-}, 3000);
+}, 10000);
     return;
   }
 
@@ -1688,7 +1688,7 @@ setTimeout(() => {
     updateScore();
     syncState();
     nextRound();
-  }, 3000);
+  }, 10000);
 
   return;
 }
@@ -1742,7 +1742,7 @@ if(stealMode){
     updateScore();
     syncState();
     nextRound();
-  }, 3000);
+  }, 10000);
 
   return;
 }
