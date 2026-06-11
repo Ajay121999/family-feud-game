@@ -77,6 +77,21 @@
   perspective: 1000px;
 }
 
+.active-player {
+  color: #f1c40f;
+  font-weight: bold;
+  text-shadow: 0 0 10px gold;
+  background: rgba(241,196,15,0.15);
+  padding: 2px 6px;
+  border-radius: 6px;
+  animation: pulseGlow 1.2s infinite;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 5px gold; }
+  50% { box-shadow: 0 0 20px gold; }
+  100% { box-shadow: 0 0 5px gold; }
+}
 
 .ff-row.revealed {
   background: linear-gradient(90deg, #ffcc00, #ff9900);
@@ -186,6 +201,8 @@ body {
   cursor:pointer;
   animation: popIn 0.3s ease;
 }
+
+
 
 @keyframes popIn {
   from { transform: scale(0); opacity: 0; }
@@ -636,6 +653,8 @@ const questions = [
 
 ];
 
+
+
 let decidingControl = true;
 let roundId = 0;
 let roomId = "";
@@ -655,6 +674,19 @@ let teams = [
   { name: "Team A", score: 0 },
   { name: "Team B", score: 0 }
 ];
+
+
+let teamPlayerOrder = {
+  0: [],
+  1: []
+};
+
+let currentPlayerIndex = {
+  0: 0,
+  1: 0
+};
+
+
 
 let currentTeam = null;
 let activeTeam = null;
@@ -851,66 +883,93 @@ ref.off();
 // =========================
 ref.child("players").on("value", snap => {
 
-  let data = snap.val();
-  let lists = document.querySelectorAll("#playerList");
+let data = snap.val();
+let lists = document.querySelectorAll("#playerList");
 
-  if(!lists.length) return;
+if(!lists.length) return;
 
-  let teamA = [];
-  let teamB = [];
-  let unassigned = [];
+let teamA = [];
+let teamB = [];
+let unassigned = [];
 
-  if(data){
-    Object.entries(data).forEach(([key, p]) => {
-      if(!p?.name) return;
+if(data){
+  Object.entries(data).forEach(([key, p]) => {
+    if(!p?.name) return;
 
-      if(p.team === 0){
-        teamA.push("👤 " + p.name);
-      }
-      else if(p.team === 1){
-        teamB.push("👤 " + p.name);
-      }
-      else{
-        if(isHost){
-          unassigned.push(`
-            ${p.name}
-            <button onclick="assignTeam('${key}',0)">🔴 A</button>
-            <button onclick="assignTeam('${key}',1)">🔵 B</button>
-          `);
-        } else {
-          unassigned.push("👤 " + p.name);
-        }
-      }
-    });
-  }
+    // ✅ Highlight active player
+    let displayName;
 
-  lists.forEach(el => {
-    if(!data){
-      el.innerText = "None";
-      return;
+    if(p.name === activePlayerName){
+      displayName = `<span class="active-player">👤 ${p.name}</span>`;
+    } else {
+      displayName = "👤 " + p.name;
     }
 
-    el.innerHTML =
-      "<b>🟡 Unassigned:</b><br>"
-      + (unassigned.join("<br>") || "None")
-      + "<br><br><b>🔴 Team A:</b><br>"
-      + (teamA.join("<br>") || "None")
-      + "<br><br><b>🔵 Team B:</b><br>"
-      + (teamB.join("<br>") || "None");
+    // ✅ Assign to teams
+    if(p.team === 0){
+      teamA.push(displayName);
+    }
+    else if(p.team === 1){
+      teamB.push(displayName);
+    }
+    else{
+      if(isHost){
+        unassigned.push(`
+          ${p.name}
+          <button onclick="assignTeam('${key}',0)">🔴 A</button>
+          <button onclick="assignTeam('${key}',1)">🔵 B</button>
+        `);
+      } else {
+        unassigned.push("👤 " + p.name);
+      }
+    }
   });
 
-  // ✅ detect YOUR team
-  let myEntry = data ? data[playerKey] : null;
+  // ✅ IMPORTANT: Build rotation lists (NO HTML, just names)
+  teamPlayerOrder[0] = [];
+teamPlayerOrder[1] = [];
 
-  if(myEntry && myEntry.team !== undefined){
-    playerTeam = myEntry.team;
+Object.values(data).forEach(p => {
+  if(!p?.name) return;
 
-    let myTeamEl = document.getElementById("yourTeam");
-    if(myTeamEl){
-      myTeamEl.innerText =
-        "You are: " + (playerTeam === 0 ? "🔴 Team A" : "🔵 Team B");
-    }
+  if(p.team === 0){
+    teamPlayerOrder[0].push(p.name);
   }
+  else if(p.team === 1){
+    teamPlayerOrder[1].push(p.name);
+  }
+});
+
+}
+// ✅ Update UI
+lists.forEach(el => {
+
+  if(!data){
+    el.innerText = "None";
+    return;
+  }
+
+  el.innerHTML =
+    "<b>🟡 Unassigned:</b><br>"
+    + (unassigned.join("<br>") || "None")
+    + "<br><br><b>🔴 Team A:</b><br>"
+    + (teamA.join("<br>") || "None")
+    + "<br><br><b>🔵 Team B:</b><br>"
+    + (teamB.join("<br>") || "None");
+});
+
+// ✅ Detect YOUR team
+let myEntry = data ? data[playerKey] : null;
+
+if(myEntry && myEntry.team !== undefined){
+  playerTeam = myEntry.team;
+
+  let myTeamEl = document.getElementById("yourTeam");
+  if(myTeamEl){
+    myTeamEl.innerText =
+      "You are: " + (playerTeam === 0 ? "🔴 Team A" : "🔵 Team B");
+  }
+}
 
 });
 
@@ -931,7 +990,14 @@ if(currentTeam !== null) return;
 
 if(isHost){
   currentTeam = data.team;
-  activePlayerName = data.name;
+  
+currentPlayerIndex[currentTeam] = 0;
+
+let players = teamPlayerOrder[currentTeam];
+if(players && players.length > 0){
+  activePlayerName = players[0];
+}
+
   buzzerLocked = true;
 
   syncState(); // 🔥 this locks EVERYONE
@@ -961,8 +1027,6 @@ if(isHost){
 
   lastAnswerProcessed = data.value;
 
-  // ✅ Update active player to whoever answered
-  activePlayerName = data.name;
 
 // ✅ FORCE state sync BEFORE processing
 syncState();
@@ -1088,8 +1152,7 @@ if(buzzBtn){
   input.style.color = "#fff";
 }
 
-else if(currentTeam !== playerTeam){
-  // ❌ Other team's turn
+else if(currentTeam !== playerTeam || playerName !== activePlayerName){
   input.disabled = true;
   input.style.opacity = "0.4";
   input.placeholder = "⛔ Not your turn";
@@ -1097,9 +1160,7 @@ else if(currentTeam !== playerTeam){
   input.style.color = "#fff";
   input.value = "";
 }
-
 else{
-  // ✅ Your team's turn
   input.disabled = false;
   input.style.opacity = "1";
   input.placeholder = "Type your answer...";
@@ -1190,6 +1251,17 @@ function assignTeam(playerKey, team){
   firebase.database()
     .ref("rooms/" + roomId + "/players/" + playerKey + "/team")
     .set(team);
+}
+
+function nextPlayer(){
+
+let players = teamPlayerOrder[currentTeam];
+if(!players || players.length === 0) return;
+
+currentPlayerIndex[currentTeam] =
+  (currentPlayerIndex[currentTeam] + 1) % players.length;
+
+activePlayerName = players[currentPlayerIndex[currentTeam]];
 }
 
 function sendBuzz(){
@@ -1467,7 +1539,10 @@ if(activeTeam === null){
 
   currentTeam = currentTeam === 0 ? 1 : 0;
 
-  activePlayerName = "Team " + (currentTeam === 0 ? "A" : "B");
+  currentPlayerIndex[currentTeam] = 0;
+
+let players = teamPlayerOrder[currentTeam];
+activePlayerName = players?.[0] || "";
 
   document.getElementById("result").innerText =
     "⏰ Time's Up! Other team gets ONE chance!";
@@ -1583,6 +1658,7 @@ currentTeam = activeTeam;
 let allFound = q.answers.every(a => a.revealed);
 
   if(allFound){
+    nextPlayer();
     launchConfetti();
     teams[currentTeam].score += roundPoints;
     updateScore();
@@ -1598,6 +1674,7 @@ setTimeout(() => {
 
 
   if(stealMode){
+    nextPlayer();
   launchConfetti();
 
   revealAll(); // ✅ ADD THIS
@@ -1626,7 +1703,10 @@ if(activeTeam === null){
   activeTeam = currentTeam; // remember original team
 
   currentTeam = currentTeam === 0 ? 1 : 0;
-  activePlayerName = "Team " + (currentTeam === 0 ? "A" : "B");
+  currentPlayerIndex[currentTeam] = 0;
+
+let players = teamPlayerOrder[currentTeam];
+activePlayerName = players?.[0] || "";
 
   document.getElementById("result").innerText =
     "❌ Wrong! Other team gets ONE chance!";
@@ -1667,7 +1747,11 @@ if(stealMode){
 addStrike();
 }
 // ✅ keep game flowing
+
+nextPlayer();
+syncState();
 document.getElementById("answer").focus();
+
 }
 
 function finish(){
@@ -1788,7 +1872,10 @@ function startSteal(){
   activeTeam = activeTeam === 0 ? 1 : 0;
   currentTeam = activeTeam;
 
-  activePlayerName = "Team " + (currentTeam === 0 ? "A" : "B");
+  currentPlayerIndex[currentTeam] = 0;
+
+let players = teamPlayerOrder[currentTeam];
+activePlayerName = players?.[0] || "";
 
   document.getElementById("turn").innerText =
     teams[activeTeam].name + " can STEAL!";
