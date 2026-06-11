@@ -986,17 +986,21 @@ if(!data) return;
 if(!data.roundId || Number(data.roundId) !== Number(roundId)) return;
 
 // ✅ HARD STOP if already taken
-if(currentTeam !== null) return;
+if(currentTeam !== null || activePlayerName) return;
 
 if(isHost){
-  currentTeam = data.team;
-  
-currentPlayerIndex[currentTeam] = 0;
 
+  currentTeam = data.team;
+
+// ✅ set active player to the one who buzzed
+activePlayerName = data.name;
+
+// ✅ OPTIONAL: update index so rotation continues properly
 let players = teamPlayerOrder[currentTeam];
 if(players && players.length > 0){
-  activePlayerName = players[0];
+  currentPlayerIndex[currentTeam] = players.indexOf(data.name);
 }
+
 
   buzzerLocked = true;
 
