@@ -1328,21 +1328,32 @@ stateRef.once("value", snap => {
 
 }
 
+
 function isMatch(input, answer){
 
-let i = normalize(input);
-let a = normalize(answer);
+  let i = normalize(input);
+  let a = normalize(answer);
 
-if(i === a) return true;
-if(i.includes(a) || a.includes(i)) return true;
+  // exact match
+  if(i === a) return true;
 
-let wordsA = a.split(" ");
-let wordsI = i.split(" ");
+  // require minimum length (prevents "c")
+  if(i.length < 3) return false;
 
-let overlap = wordsA.filter(w => wordsI.includes(w));
+  // partial match but strong enough
+  if(a.includes(i) && i.length >= Math.ceil(a.length * 0.5)){
+    return true;
+  }
 
-return overlap.length >= Math.ceil(wordsA.length / 2);
+  // word overlap match
+  let wordsA = a.split(" ");
+  let wordsI = i.split(" ");
+
+  let overlap = wordsA.filter(w => wordsI.includes(w));
+
+  return overlap.length >= Math.ceil(wordsA.length / 2);
 }
+
 
 
 // START
